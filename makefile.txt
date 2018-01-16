@@ -1,0 +1,25 @@
+#CC = cc 				
+CC = gcc  				
+COMPILER = $(CC)
+OBJS = client.o server.o server client
+
+all: $(OBJS)
+	@echo "ALL FINISH"
+
+client.o: client.c 
+	$(COMPILER) -c client.c
+
+server.o: server.c 
+	$(COMPILER) -c server.c
+
+server: server.o
+	$(COMPILER) -o server server.o
+
+client: client.o
+	$(COMPILER) -o client client.o	
+
+clean:
+	@echo "CLEANING"
+	rm client
+	rm server
+	rm *.o

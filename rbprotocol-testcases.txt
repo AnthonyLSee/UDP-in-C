@@ -1,0 +1,211 @@
+Testcases
+
+_____ Drop Rate = 10% _____
+./client 1234
+Note the host will auto default to 127.0.0.1 . Make sure to have another terminal up with the server!
+Server: 127.0.0.1 , Timeout duration: 2 seconds, Port:1234
+=====NEW PACKET | abcd |=====
+Sending: | abcd1 |, SequenceNum:| 1 |
+Receving: ACK
+
+=====NEW PACKET | efgh |=====
+Sending: | efgh0 |, SequenceNum:| 0 |
+Receving: ACK
+
+=====NEW PACKET | ijkl |=====
+Sending: | ijkl1 |, SequenceNum:| 1 |
+Entering Timeout Loop =====
+    Resending: ijkl1 | SequenceNum: 1
+    Timeout
+    Receving:  ACK
+
+=====NEW PACKET | mnop |=====
+Sending: | mnop0 |, SequenceNum:| 0 |
+Entering Timeout Loop =====
+    Resending: mnop0 | SequenceNum: 0
+    Timeout
+    Receving:  ACK
+
+=====NEW PACKET | qrst |=====
+Sending: | qrst1 |, SequenceNum:| 1 |
+Receving: ACK
+
+=====NEW PACKET | uvwx |=====
+Sending: | uvwx0 |, SequenceNum:| 0 |
+Receving: ACK
+
+=====NEW PACKET | yz |=====
+Sending: | yz1 |, SequenceNum:| 1 |
+Receving: ACK
+
+=====NEW PACKET | eof |=====
+Sending: | eof |, SequenceNum:| 0 |
+Receving: eof
+END OF FILE
+function end
+
+
+
+./server 1234 10
+Received Data: | abcd1 |
+recievedSeq: | 1 |, expectedSeq: | 1 |
+Same seq number
+Added |abcd| recvFile, sending ACK
+
+Received Data: | efgh0 |
+recievedSeq: | 0 |, expectedSeq: | 0 |
+Same seq number
+Added |efgh| recvFile, sending ACK
+
+Drop packet
+
+Received Data: | ijkl1 |
+recievedSeq: | 1 |, expectedSeq: | 1 |
+Same seq number
+Added |ijkl| recvFile, sending ACK
+
+Drop packet
+
+Received Data: | mnop0 |
+recievedSeq: | 0 |, expectedSeq: | 0 |
+Same seq number
+Added |mnop| recvFile, sending ACK
+
+Received Data: | qrst1 |
+recievedSeq: | 1 |, expectedSeq: | 1 |
+Same seq number
+Added |qrst| recvFile, sending ACK
+
+Received Data: | uvwx0 |
+recievedSeq: | 0 |, expectedSeq: | 0 |
+Same seq number
+Added |uvwx| recvFile, sending ACK
+
+Received Data: | yz1 |
+recievedSeq: | 1 |, expectedSeq: | 1 |
+Same seq number
+Added |yz| recvFile, sending ACK
+
+Received Data: | eof |
+End of File!
+__________________________
+
+
+_____ Drop Rate = 40% _____
+./client 1234
+=====NEW PACKET | abcd |=====
+Sending: | abcd1 |, SequenceNum:| 1 |
+Entering Timeout Loop =====
+    Resending: abcd1 | SequenceNum: 1
+    Timeout
+    Resending: abcd1 | SequenceNum: 1
+    Timeout
+    Resending: abcd1 | SequenceNum: 1
+    Timeout
+    Resending: abcd1 | SequenceNum: 1
+    Timeout
+    Resending: abcd1 | SequenceNum: 1
+    Timeout
+    Resending: abcd1 | SequenceNum: 1
+    Timeout
+    Resending: abcd1 | SequenceNum: 1
+    Timeout
+    Receving:  ACK
+
+=====NEW PACKET | efgh |=====
+Sending: | efgh0 |, SequenceNum:| 0 |
+Receving: ACK
+
+=====NEW PACKET | ijkl |=====
+Sending: | ijkl1 |, SequenceNum:| 1 |
+Receving: ACK
+
+=====NEW PACKET | mnop |=====
+Sending: | mnop0 |, SequenceNum:| 0 |
+Entering Timeout Loop =====
+    Resending: mnop0 | SequenceNum: 0
+    Timeout
+    Receving:  ACK
+
+=====NEW PACKET | qrst |=====
+Sending: | qrst1 |, SequenceNum:| 1 |
+Receving: ACK
+
+=====NEW PACKET | uvwx |=====
+Sending: | uvwx0 |, SequenceNum:| 0 |
+Receving: ACK
+
+=====NEW PACKET | yz |=====
+Sending: | yz1 |, SequenceNum:| 1 |
+Receving: ACK
+
+=====NEW PACKET | eof |=====
+Sending: | eof |, SequenceNum:| 0 |
+Entering Timeout Loop =====
+    Resending: eof | SequenceNum: 0
+    Timeout
+    Receving:  eof
+END OF FILE
+function end
+
+
+./server 1234 40
+DROP RATE : 40.000000% , PORT: 1234
+Socket() successful
+setsockopt() successful
+Bind() successful
+Drop packet
+
+Drop packet
+
+Drop packet
+
+Drop packet
+
+Drop packet
+
+Drop packet
+
+Drop packet
+
+Received Data: | abcd1 |
+recievedSeq: | 1 |, expectedSeq: | 1 |
+Same seq number
+Added |abcd| recvFile, sending ACK
+
+Received Data: | efgh0 |
+recievedSeq: | 0 |, expectedSeq: | 0 |
+Same seq number
+Added |efgh| recvFile, sending ACK
+
+Received Data: | ijkl1 |
+recievedSeq: | 1 |, expectedSeq: | 1 |
+Same seq number
+Added |ijkl| recvFile, sending ACK
+
+Drop packet
+
+Received Data: | mnop0 |
+recievedSeq: | 0 |, expectedSeq: | 0 |
+Same seq number
+Added |mnop| recvFile, sending ACK
+
+Received Data: | qrst1 |
+recievedSeq: | 1 |, expectedSeq: | 1 |
+Same seq number
+Added |qrst| recvFile, sending ACK
+
+Received Data: | uvwx0 |
+recievedSeq: | 0 |, expectedSeq: | 0 |
+Same seq number
+Added |uvwx| recvFile, sending ACK
+
+Received Data: | yz1 |
+recievedSeq: | 1 |, expectedSeq: | 1 |
+Same seq number
+Added |yz| recvFile, sending ACK
+
+Drop packet
+
+Received Data: | eof |
+End of File!
