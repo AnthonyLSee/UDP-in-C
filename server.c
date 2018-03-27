@@ -9,6 +9,7 @@
 #include 		<sys/wait.h>
 #include 		<limits.h>
 
+
 #define BUFLEN 512
 #define NPACK 10
 #define PORT 3543
@@ -27,6 +28,9 @@
 
 void foundError(char* s)
 {
+	/* foundError()
+	 *	- External debuggig funciton
+	 */
 	perror(s);
 	exit(1);
 }
@@ -34,17 +38,24 @@ void foundError(char* s)
 
 void rebuildFile(char* packet)
 {
+	/* rebuildFile()
+	 *	- Grabs a string / packet
+	 *	- Uses File IO and saves packet.
+	 */
 	FILE *fp;
 	fp = fopen("recvFile.txt", "a");
 	if ( strlen(packet) < 4) fprintf(fp, "%s\n",packet);
 	else 	fprintf(fp, "%s",packet);
-
 	fclose(fp);
 }
 	
 	
 char sequencer(char sequenceNumber)
 {
+	/* sequencer()
+	 *	- provides either 1 or 0 
+	 *	- depends on previous value (if 1,then 0. If 0, then 1)
+	 */
 	char holder;
 	if(sequenceNumber == '0')
 		holder = '1';
@@ -56,6 +67,7 @@ char sequencer(char sequenceNumber)
 
 int main(int argc, char * argv[] )
 {
+	/* VARS! */
 	struct sockaddr_in sockaddr,sockaddrOther;
 	int 			sd;
 	char 			buffer[512];
@@ -69,7 +81,7 @@ int main(int argc, char * argv[] )
 	int 			port;
 	char			expectedSeq = '1';
 	char			recievedSeq;
-	
+	/* VARS! */
 	
 	if ( argc < 3 )
 	{
@@ -77,9 +89,10 @@ int main(int argc, char * argv[] )
 		exit( 1 );
 	}
 	port = atoi(argv[1]);			// char->int
-
 	dropRate = strtof(argv[2],&p);	// char->float
-	if (dropRate > 100) foundError("Not between 0-100\n");
+	
+	if (dropRate > 100) 
+		foundError("Not between 0-100\n");
 	else
 	{
 		printf("DROP RATE : %f%% , PORT: %d\n", dropRate,port);
@@ -88,7 +101,7 @@ int main(int argc, char * argv[] )
 	
 	
 	/* ======== Sockets, binds, oh my! ======== */
-	if ( (sd=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1) foundError("socket\n");
+	if ( (sd=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1) foundError("socket()\n");
 	printf("Socket() successful\n");
 	
 	memset(&sockaddr, 0, sizeof(sockaddr)); 
@@ -96,10 +109,10 @@ int main(int argc, char * argv[] )
 	sockaddr.sin_port = htons(port);
 	sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); //from any sender
 	 
-	if ( setsockopt( sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on) ) == -1 ) foundError("Sockop\n");
+	if ( setsockopt( sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on) ) == -1 ) foundError("setsockopt()\n");
 	printf("setsockopt() successful\n");
 
-	if( bind( sd, (struct sockaddr *) &sockaddr, sizeof(sockaddr)) == -1) foundError("bind");
+	if( bind( sd, (struct sockaddr *) &sockaddr, sizeof(sockaddr)) == -1) foundError("bind()");
 	printf("Bind() successful\n");
 	/* ======== Sockets, binds, oh my! ======== */
 	
@@ -119,8 +132,6 @@ int main(int argc, char * argv[] )
 		
 		else
 		{
-			printf(CYAN"=== RECEIVED: | %s | from : | %d | ===" RESET "\n", buffer,ntohs( sockaddrOther.sin_port ));
-
 			/*
 			Does packet sequnum == next expected seqnum?
 				If so, "next expected seq num" += 1, process packet
@@ -130,31 +141,32 @@ int main(int argc, char * argv[] )
 				Packet is out of seq, receiver is not ready for this packet
 			*/
 			
-			if( strcmp(buffer,"eof") != 0)					// is it EOF?
-			{												// Nope not EOF
+			printf(CYAN"=== RECEIVED: | %s | from : | %d | ===" RESET "\n", buffer,ntohs( sockaddrOther.sin_port ));
+			if( strcmp(buffer,"eof") != 0)								// is it EOF?
+			{															// Nope not EOF
 				
 				recievedSeq = buffer[strlen(buffer)-1];
 				printf("    recievedSeq: | %c |, expectedSeq: | %c |\n", recievedSeq,expectedSeq);
 		
-				if( expectedSeq == recievedSeq)				// The seq number is the same!
+				if( expectedSeq == recievedSeq)							// The seq number is the same!
 				{	
-					expectedSeq = sequencer(expectedSeq);		// Swap seq num
+					expectedSeq = sequencer(expectedSeq);				// Swap seq num
 					printf("    Same seq number\n");
-					buffer[strlen(buffer)-1] = '\0'; 			// REMOVE SEQ NUMBER!
-					rebuildFile(buffer);						// Add buffer to file
+					buffer[strlen(buffer)-1] = '\0'; 					// REMOVE SEQ NUMBER!
+					rebuildFile(buffer);								// Add buffer to file
 					printf("    Added |%s| recvFile, sending ACK\n",buffer);
-					sprintf(buffer,"ACK\n");						// Sendover ACK
+					sprintf(buffer,"ACK\n");							// Sendover ACK
 				}
-				else										// Seq num are not the same!
+				else													// Seq num are not the same!
 				{
 					printf("    Wrong seq number, drop packet\n");
-					sprintf(buffer,"NACK\n");						// Sendover ACK
+					sprintf(buffer,"NACK\n");							// Sendover ACK
 				}
 			}
-			else 
+			else 														// Yes it is EOF
 			{
-				printf("\x1b[2;32;47mEnd of File of | %d |!\x1b[0m\n",ntohs( sockaddrOther.sin_port ));					// Yes it is EOF
-				expectedSeq = '1';							// Reset sequence for next file
+				printf("\x1b[2;32;47mEnd of File of | %d |!\x1b[0m\n",ntohs( sockaddrOther.sin_port ));					
+				expectedSeq = '1';										// Reset sequence for next file
 			}
 			if(send_read = sendto(sd,buffer,sizeof(buffer),0,(struct sockaddr*)&sockaddrOther,addrlen) == -1) 
 				foundError("sendto()");

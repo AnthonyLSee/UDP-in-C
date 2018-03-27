@@ -21,9 +21,12 @@ server.c / RECEIVER
 
 Running the programs
     There is a makefile that will both compile everything. Make sure to run the makefile like this:
-	
-    make -f makefile.txt all      // Will compile all the executables and object files
-    make -f makefile.txt clean // will clean up all the files
+
+	make all : Make all the files
+	make runS : Runs Server
+	make runC : Runs Clinet
+	make clean : Cleans up files.
+    
 
 How to run the programs:
 1. Make sure sendFile and recvFile exists. If you are going to use your own file, please rename them to these.

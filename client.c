@@ -28,14 +28,22 @@
 
 void foundError(char* s)
 {
+	/* foundError()
+	 *	- External debuggig funciton
+	 */
+	 
 	perror(s);
 	exit(1);
 }
 
 
-
 char* sequencer(char* sequenceNumber)
 {
+	/* sequencer()
+	 *	- provides either 1 or 0 
+	 *	- depends on previous value (if 1,then 0. If 0, then 1)
+	 */
+	 
 	char *holder;
 	if(strcmp(sequenceNumber,"0") == 0)
 		holder = "1";
@@ -48,6 +56,10 @@ char* sequencer(char* sequenceNumber)
 int fileOffset= 0;
 char* readFromFile()
 {
+	/* readFromFile()
+	 *	- Reads from external file.
+	 */
+	 
 	FILE *file;
 	int i,size = 0;
 	char* sendbuf;
@@ -75,30 +87,37 @@ char* readFromFile()
 
 int main(int argc, char ** argv)
 {
-	int 				sd;
-	struct sockaddr_in 	sockaddrOther;
+	
+	/*		VARS!		*/
+	int					sd;
+	struct sockaddr_in	sockaddrOther;
 	char				buffer[512];
-	char 				c;
-	int 				sockaddrOtherLen = sizeof(sockaddrOther);
-	int 				bytes_read;
+	char				c;
+	int					sockaddrOtherLen = sizeof(sockaddrOther);
+	int					bytes_read;
 	char*				sequenceNumber = "0";
-	int 				port;
-	char* 				sendBuf;
+	int					port;
+	char*				sendBuf;
+	
 	/* Timeout setup*/
-	struct timeval timeout={3,0}; // n seconds 
-	fd_set          	input_set;
-	fd_set 				socks;
+	struct timeval		timeout={3,0}; // n seconds 
+	fd_set				input_set;
+	fd_set				socks;
 	/* Timeout setup*/
-
+	
+	/*		VARS!		*/
+	
+	
 	if ( argc < 2 )
 	{
 		fprintf( stderr, "\x1b[1;31mEnter Port.  File %s line %d.\x1b[0m\n", __FILE__, __LINE__ );
 		exit( 1 );
 	}
+	
 	port = atoi(argv[1]);
 	
 	printf("\x1b[2;32;41mNote the host will auto default to 127.0.0.1 . Make sure to have another terminal up with the server!\x1b[0m\n");
-	printf("Server: 127.0.0.1 , Timeout duration: 2 seconds, Port:%d\n",port);
+	printf("Server: 127.0.0.1 , Timeout duration: 3 seconds, Port:%d\n",port);
 
 	
 	/* --------- Sockets, Servers, Oh my! ---------*/
@@ -111,7 +130,7 @@ int main(int argc, char ** argv)
 	sockaddrOther.sin_addr.s_addr = htonl(INADDR_ANY);
 	
 	if( setsockopt(sd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval)) == -1 ) 
-		foundError("Sockop\n");
+		foundError("setsockopt()\n");
 	
 	if (inet_aton("127.0.0.1", &sockaddrOther.sin_addr)==0) 
 	{
@@ -120,27 +139,15 @@ int main(int argc, char ** argv)
 	}
 	/* --------- Sockets, Servers, Oh my! ---------*/
 
-
 	
 	/* __________ Send / Recv packets! __________*/
 	while(1)
 	{	
-//		printf("PACKET:");
-//		if(fgets(buffer,60,stdin) != NULL)
-//		{
-			/* cleanup the \n at the end of array from fgets() */
-//			char *pos;			
-//			if ((pos = strchr(buffer, '\n')) != NULL) {
-//				*pos = '\0';
-//			}else{
-//				while ((c = getchar()) != EOF && c != '\n');
-//			}
-//		}
-		sendBuf = (char*)readFromFile(); 		// Got 4 bytes! (4chars)
+		sendBuf = (char*)readFromFile();								// Got 4 bytes! (4chars)
 		sequenceNumber = sequencer(sequenceNumber);
 		
 		printf("=====NEW PACKET | %s |=====\n",sendBuf);
-		if(strcmp(sendBuf,"eof") != 0)			// Don;t add seqNum to sendBuf when EOF
+		if(strcmp(sendBuf,"eof") != 0)									// Don't add seqNum to sendBuf when EOF
 			strcat(sendBuf,sequenceNumber);
 
 			
@@ -153,23 +160,25 @@ int main(int argc, char ** argv)
 	
 		/* ==== Got something back? ==== */
 		bytes_read = recvfrom(sd, buffer, sizeof(buffer),0, (struct sockaddr*)&sockaddrOther, &sockaddrOtherLen);
-		if( bytes_read >= 0 && strcmp(buffer,"NACK") != 0) 			// Got something!
+		if( bytes_read >= 0 && strcmp(buffer,"NACK") != 0) 				// Got something!
 		{
 			printf("Receving: %s\n",buffer);
 		}
-		else							// Nothing so far, keep resending
+		else															// Nothing so far, keep RESENDING
 		{
 			printf("\x1b[1;31mEntering Timeout Loop ====="RESET"\n");
 			while(bytes_read <= 0 && strcmp(buffer,"NACK") != 0)		// Will stop when bytes_read picks up something (ACK)
 			{
 				if( sendto(sd,sendBuf,sizeof(sendBuf),0,(struct sockaddr*)&sockaddrOther,sockaddrOtherLen) == -1) 
 					foundError("    sendto()");
+				
 				printf("\x1b[2;36m    Resending: %s | SequenceNum: %s  \x1b[0m\n",sendBuf,sequenceNumber);
 				bytes_read = recvfrom(sd, buffer, sizeof(buffer),0, (struct sockaddr*)&sockaddrOther, &sockaddrOtherLen);
 				printf("\x1b[2;31m    Timeout\x1b[0m\n");
 			}
 			printf("    Receving:  %s \n",buffer);
 		}
+		
 		if(strcmp(sendBuf,"eof") == 0)
 		{
 			printf("END OF FILE\n");
